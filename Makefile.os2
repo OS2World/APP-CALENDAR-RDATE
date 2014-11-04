@@ -1,0 +1,58 @@
+# Makefile.os2
+
+include Makefile.os2.config
+
+MY_MAKEFLAGS =	-f Makefile.os2
+
+SUBDIRS =	os2 rdate zic zoneinfo
+RECURSIVE =	all-recursive check-recursive install-files-recursive clean-recursive
+
+CLEAN_FILES =	Package/ $(ARCHIVE_SRC_ZIP) $(ARCHIVE_BIN_ZIP) $(ARCHIVE_UX2_ZIP)
+
+# Targets
+
+all:		
+		@$(MAKE) $(MY_MAKEFLAGS) all-recursive
+
+check:
+		@$(MAKE) $(MY_MAKEFLAGS) check-recursive
+
+install-files:	
+		@$(MAKE) $(MY_MAKEFLAGS) install-files-recursive; \
+
+package:	
+		@$(MAKE) $(MY_MAKEFLAGS) PREFIX=`pwd`/Package/usr install-files
+
+binary-zip:	package
+		@cd Package; \
+		$(ZIP) $(ZIPFLAGS) -r ../$(ARCHIVE_BIN_ZIP) *; \
+		cd ..
+
+#binary-ux2:	package
+#		@cd Package; \
+#		$(ZIP) $(ZIPFLAGS) -r ../$(ARCHIVE_UX2_ZIP) *; \
+#		cd ../os2; \
+#		$(ZIP) $(ZIPFLAGS) ../$(ARCHIVE_UX2_ZIP) PKGINFO; \
+#		cd ..;
+
+source-zip:	
+		@MY_DIR=`basename \`pwd\``; \
+		cd ..; \
+		$(ZIP) $(ZIPFLAGS) -r $(ARCHIVE_SRC_ZIP) $$MY_DIR/; \
+		cd $$MY_DIR;
+
+clean:		
+		@$(MAKE) $(MY_MAKEFLAGS) clean-recursive; \
+		rm -rf $(CLEAN_FILES)
+
+$(RECURSIVE):
+		@MY_TARGET=`echo $@ | sed s/-recursive//`; \
+		amf=$$2; \
+		MY_LIST='$(SUBDIRS)'; \
+		for SUBDIR in $$MY_LIST; do \
+			echo "Making $$MY_TARGET in $$SUBDIR"; \
+			(cd $$SUBDIR && $(MAKE) $(MY_MAKEFLAGS) $$MY_TARGET ) \
+			|| case "$$amf" in *=*) exit 1;; *k*) fail=yes;; *) exit 1;; esac; \
+		done; \
+		test -z "$$fail"
+

@@ -1,0 +1,33 @@
+# Makefile.os2
+
+include ../Makefile.os2.config
+
+SRCS =		err.c fakelink.c os2init.c strlcat.c strlcpy.c
+
+OBJS =		$(SRCS:.c=.o)
+
+
+# Rules
+
+.SUFFIXES:	.c .o
+
+.c.o:		
+		$(CC) $(CFLAGS) -o $@ -c $<
+
+
+# Targets
+
+all:		libos2ext.a
+
+libos2ext.a:	$(OBJS)
+		$(AR) $(ARFLAGS) $@ $(OBJS)
+
+check:		all
+
+install-files:	all
+
+clean:		
+		rm -f libos2ext.a $(OBJS)
+
+# Dependencies
+

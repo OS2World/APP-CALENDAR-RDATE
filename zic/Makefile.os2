@@ -1,0 +1,51 @@
+# Makefile.os2
+
+include ../Makefile.os2.config
+
+MY_MAKEFLAGS =	-f Makefile.os2
+
+MAN8 =		zic.8
+
+SRCS =		ialloc.c scheck.c zic.c
+
+OBJS =		$(SRCS:.c=.o)
+
+CLEAN_FILES =	zic.exe core $(OBJS)
+
+# Rules
+
+.SUFFIXES:	.c .o
+
+.c.o:		
+		$(CC) $(CFLAGS) -o $@ -c $<
+
+# Targets
+
+all:		zic.exe
+
+zic.exe:	$(OBJS)
+		$(LD) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
+
+check:		all
+
+install-files:	all
+		@if test ! -e $(BINDIR); then \
+			echo "Creating directory $(BINDIR) ..."; \
+			mkdir -p $(BINDIR); \
+		fi; \
+		echo "zic.exe -> $(BINDIR)/zic.exe"; \
+		cp zic.exe $(BINDIR)/zic.exe; \
+		if test ! -e $(MANDIR)/man8; then \
+			echo "Creating directory $(MANDIR)/man8 ..."; \
+			mkdir -p $(MANDIR)/man8; \
+		fi; \
+		for MAN_FILE in $(MAN8); do \
+			echo "$$MAN_FILE -> $(MANDIR)/man8/$$MAN_FILE"; \
+			cp $$MAN_FILE $(MANDIR)/man8/$$MAN_FILE; \
+		done;
+
+clean:		
+		rm -rf $(CLEAN_FILES)
+
+# Dependencies
+

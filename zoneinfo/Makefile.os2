@@ -1,0 +1,65 @@
+# Makefile.os2
+
+include ../Makefile.os2.config
+
+VPATH =		datfiles
+
+LOCALTIME =	US/Pacific
+POSIXRULES =	US/Pacific
+REDO =		posix_right
+YEARISTYPE =	datfiles/yearistype.sh
+YEARISTYPECOPY =	yearistypecopy
+YDATA =		africa antarctica asia australasia europe northamerica \
+		southamerica pacificnew etcetera factory backward
+NDATA =		systemv
+SDATA =		solar87 solar88 solar89
+TDATA =		$(YDATA) $(NDATA) $(SDATA)
+TABDATA =	iso3166.tab zone.tab
+DATA =		$(YDATA) $(NDATA) $(SDATA) $(TABDATA) leapseconds
+
+ZIC =		../../zic/zic.exe
+
+CLEAN_FILES =	core $(YEARISTYPECOPY)
+
+# Targets
+
+all:		$(YEARISTYPECOPY)
+
+$(YEARISTYPECOPY):	$(YEARISTYPE)
+		cp $(YEARISTYPE) $(YEARISTYPECOPY)
+		chmod u+x $(YEARISTYPECOPY)
+
+posix_only:	$(TDATA) $(YEARISTYPECOPY)
+		cd datfiles; \
+		$(ZIC) -y $(YEARISTYPECOPY) -d $(TZDIR) -L nul $(TDATA); \
+		cd ..;
+
+right_only:	leapseconds $(TDATA) $(YEARISTYPECOPY)
+		cd datfiles; \
+		$(ZIC) -y $(YEARISTYPECOPY) -d $(TZDIR) -L leapseconds $(TDATA); \
+		cd ..;
+
+other_two:	leapseconds $(TDATA) $(YEARISTYPECOPY)
+		cd datfiles; \
+		$(ZIC) -y $(YEARISTYPECOPY) -d $(TZDIR)/posix -L nul $(TDATA); \
+		$(ZIC) -y $(YEARISTYPECOPY) -d $(TZDIR)/right -L leapseconds $(TDATA); \
+		cd ..;
+
+posix_right:	posix_only other_two
+
+right_posix:	right_only other_two
+
+realinstall:	$(DATA) $(REDO) $(YEARISTYPECOPY)
+		cd datfiles; \
+		$(ZIC) -y $(YEARISTYPECOPY) -d $(TZDIR) -p $(POSIXRULES); \
+		cd ..;
+
+check:		all
+
+install-files:	realinstall
+
+clean:		
+		rm -rf $(CLEAN_FILES)
+
+# Dependencies
+
